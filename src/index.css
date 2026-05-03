@@ -217,3 +217,18 @@ tr:hover td {
   background: var(--primary);
   border-radius: 4px;
 }
+
+/* Drag and Drop utilities */
+.draggable-row {
+  cursor: grab;
+  transition: background-color 0.2s ease;
+}
+
+.draggable-row:active {
+  cursor: grabbing;
+}
+
+.draggable-row.drag-over {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  outline: 2px dashed var(--primary);
+}

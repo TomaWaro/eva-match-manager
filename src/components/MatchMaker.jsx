@@ -1,4 +1,5 @@
-import { Play, Flag, Swords, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Play, Flag, Swords, Check, GripVertical } from 'lucide-react';
 
 // Helper: Get all combinations of size k from an array
 function getCombinations(array, k) {
@@ -23,6 +24,62 @@ const getTeamLevel = (team) => team.reduce((sum, p) => sum + p.level, 0);
 
 function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
   const MIN_PLAYERS = 8; // 4v4 format
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  const handleDragStart = (e, player, teamKey) => {
+    setDraggedItem({ player, teamKey });
+    setTimeout(() => {
+      if (e.target) e.target.style.opacity = '0.5';
+    }, 0);
+  };
+
+  const handleDragEnd = (e) => {
+    if (e.target) e.target.style.opacity = '1';
+    setDraggedItem(null);
+    setDragOverId(null);
+  };
+
+  const handleDragOver = (e, targetPlayerId) => {
+    e.preventDefault();
+    if (draggedItem && draggedItem.player.id !== targetPlayerId) {
+      setDragOverId(targetPlayerId);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverId(null);
+  };
+
+  const handleDrop = (e, targetPlayer, targetTeamKey) => {
+    e.preventDefault();
+    setDragOverId(null);
+    if (e.target) e.target.style.opacity = '1';
+
+    if (!draggedItem || draggedItem.player.id === targetPlayer.id) return;
+
+    const sourceTeamKey = draggedItem.teamKey;
+    const newTeams = {
+      team1: [...currentMatch.team1],
+      team2: [...currentMatch.team2]
+    };
+
+    newTeams[sourceTeamKey] = newTeams[sourceTeamKey].map(p => 
+      p.id === draggedItem.player.id ? targetPlayer : p
+    );
+
+    newTeams[targetTeamKey] = newTeams[targetTeamKey].map(p => 
+      p.id === targetPlayer.id ? draggedItem.player : p
+    );
+
+    const newDiff = Math.abs(getTeamLevel(newTeams.team1) - getTeamLevel(newTeams.team2));
+
+    setCurrentMatch({
+      team1: newTeams.team1,
+      team2: newTeams.team2,
+      levelDiff: newDiff
+    });
+  };
 
   const generateMatch = () => {
     // 1. Sort players by matches played (ascending). For ties, shuffle them randomly to ensure rotation.
@@ -109,8 +166,20 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
                 <table style={{ background: 'rgba(0, 240, 255, 0.05)' }}>
                   <tbody>
                     {currentMatch.team1.map(player => (
-                      <tr key={player.id}>
-                        <td className="font-bold">{player.name}</td>
+                      <tr 
+                        key={player.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, player, 'team1')}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, player.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, player, 'team1')}
+                        className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''}`}
+                      >
+                        <td className="font-bold flex items-center gap-2">
+                          <GripVertical size={16} className="opacity-50" />
+                          {player.name}
+                        </td>
                         <td className="text-right">Niv. {player.level}</td>
                       </tr>
                     ))}
@@ -129,8 +198,20 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
                 <table style={{ background: 'rgba(255, 0, 85, 0.05)' }}>
                   <tbody>
                     {currentMatch.team2.map(player => (
-                      <tr key={player.id}>
-                        <td className="font-bold">{player.name}</td>
+                      <tr 
+                        key={player.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, player, 'team2')}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, player.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, player, 'team2')}
+                        className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''}`}
+                      >
+                        <td className="font-bold flex items-center gap-2">
+                          <GripVertical size={16} className="opacity-50" />
+                          {player.name}
+                        </td>
                         <td className="text-right">Niv. {player.level}</td>
                       </tr>
                     ))}
