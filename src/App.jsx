@@ -7,7 +7,7 @@ import { Gamepad2, Users, History, Download, Upload, LogOut } from 'lucide-react
 
 function App() {
   const [players, setPlayers] = useState([]);
-  const [currentMatch, setCurrentMatch] = useState(null);
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [matchHistory, setMatchHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('match');
   const [loading, setLoading] = useState(true);
@@ -28,10 +28,11 @@ function App() {
           if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
         }
         
-        if (data.currentMatch !== undefined) setCurrentMatch(data.currentMatch);
+        if (data.upcomingMatches) setUpcomingMatches(data.upcomingMatches);
+        else if (data.currentMatch) setUpcomingMatches([data.currentMatch]); // migration
         else {
-          const savedMatch = localStorage.getItem('eva-match');
-          if (savedMatch) setCurrentMatch(JSON.parse(savedMatch));
+          const savedMatches = localStorage.getItem('eva-upcoming');
+          if (savedMatches) setUpcomingMatches(JSON.parse(savedMatches));
         }
         
         if (data.matchHistory) setMatchHistory(data.matchHistory);
@@ -44,10 +45,9 @@ function App() {
       .catch(err => {
         console.warn("API Error, falling back to localStorage", err);
         const savedPlayers = localStorage.getItem('eva-players');
-        const savedMatch = localStorage.getItem('eva-match');
-        const savedHistory = localStorage.getItem('eva-history');
+        const savedMatches = localStorage.getItem('eva-upcoming');
         if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
-        if (savedMatch) setCurrentMatch(JSON.parse(savedMatch));
+        if (savedMatches) setUpcomingMatches(JSON.parse(savedMatches));
         if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
         setLoading(false);
       });
@@ -58,17 +58,17 @@ function App() {
     
     // Save locally always
     localStorage.setItem('eva-players', JSON.stringify(players));
-    localStorage.setItem('eva-match', JSON.stringify(currentMatch));
+    localStorage.setItem('eva-upcoming', JSON.stringify(upcomingMatches));
     localStorage.setItem('eva-history', JSON.stringify(matchHistory));
 
     // Try saving to DB
-    const data = { players, currentMatch, matchHistory };
+    const data = { players, upcomingMatches, matchHistory };
     fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     }).catch(() => {}); // ignore error locally
-  }, [players, currentMatch, matchHistory, loading]);
+  }, [players, upcomingMatches, matchHistory, loading]);
 
   const addPlayer = (name, level) => {
     const newPlayer = {
@@ -89,11 +89,12 @@ function App() {
   };
 
   const finishMatch = () => {
-    if (!currentMatch) return;
+    if (upcomingMatches.length === 0) return;
     
+    const match = upcomingMatches[0];
     const participatingIds = [
-      ...currentMatch.team1.map(p => p.id),
-      ...currentMatch.team2.map(p => p.id)
+      ...match.team1.map(p => p.id),
+      ...match.team2.map(p => p.id)
     ];
 
     setPlayers(players.map(p => {
@@ -106,16 +107,16 @@ function App() {
     const newMatchRecord = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
-      team1: currentMatch.team1,
-      team2: currentMatch.team2
+      team1: match.team1,
+      team2: match.team2
     };
     
     setMatchHistory([newMatchRecord, ...matchHistory]);
-    setCurrentMatch(null);
+    setUpcomingMatches(upcomingMatches.slice(1));
   };
 
   const exportData = () => {
-    const data = { players, currentMatch, matchHistory };
+    const data = { players, upcomingMatches, matchHistory };
     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -133,7 +134,8 @@ function App() {
       try {
         const data = JSON.parse(e.target.result);
         if (data.players) setPlayers(data.players);
-        if (data.currentMatch !== undefined) setCurrentMatch(data.currentMatch);
+        if (data.upcomingMatches) setUpcomingMatches(data.upcomingMatches);
+        else if (data.currentMatch) setUpcomingMatches([data.currentMatch]);
         if (data.matchHistory) setMatchHistory(data.matchHistory);
         alert("Données importées avec succès !");
       } catch (err) {
@@ -228,8 +230,8 @@ function App() {
         {activeTab === 'match' && (
           <MatchMaker 
             players={players} 
-            currentMatch={currentMatch}
-            setCurrentMatch={setCurrentMatch}
+            upcomingMatches={upcomingMatches}
+            setUpcomingMatches={setUpcomingMatches}
             finishMatch={finishMatch}
             matchHistory={matchHistory}
           />
