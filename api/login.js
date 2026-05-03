@@ -29,22 +29,30 @@ export default async function handler(request, response) {
       return response.status(400).json({ error: 'Identifiant et mot de passe requis' });
     }
 
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
     // Initialize default user if not exists
-    const exists = await redis.hexists('eva-users', 'nella');
-    if (!exists) {
-      await redis.hset('eva-users', { nella: 'prime' });
+    try {
+      const exists = await redis.hexists('eva-users', 'nella');
+      if (!exists) {
+        await redis.hset('eva-users', { nella: 'prime' });
+      }
+    } catch (e) {
+      console.error("Redis Init Error:", e);
+      return response.status(500).json({ error: 'Erreur de connexion à la base de données Redis (variables Vercel manquantes ?): ' + e.message });
     }
 
     // Get the password from Redis
-    const storedPassword = await redis.hget('eva-users', username.toLowerCase());
+    const storedPassword = await redis.hget('eva-users', cleanUsername);
 
-    if (storedPassword && storedPassword === password) {
+    if (storedPassword && storedPassword === cleanPassword) {
       return response.status(200).json({ success: true });
     } else {
       return response.status(401).json({ error: 'Identifiants incorrects' });
     }
   } catch (error) {
     console.error("Login API Error:", error);
-    return response.status(500).json({ error: 'Erreur interne du serveur' });
+    return response.status(500).json({ error: 'Erreur interne du serveur: ' + error.message });
   }
 }
