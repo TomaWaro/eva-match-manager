@@ -1,9 +1,6 @@
-import { Redis } from '@upstash/redis';
+import Redis from 'ioredis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-});
+const redis = new Redis(process.env.REDIS_URL);
 
 export default async function handler(request, response) {
   // CORS Headers in case they call it from a different origin locally
@@ -22,7 +19,8 @@ export default async function handler(request, response) {
   if (request.method === 'GET') {
     try {
       const state = await redis.get('eva-manager-state');
-      return response.status(200).json(state || {});
+      const parsedState = state ? JSON.parse(state) : {};
+      return response.status(200).json(parsedState);
     } catch (error) {
       console.error("KV GET Error:", error);
       return response.status(500).json({ error: 'Failed to read state' });
@@ -32,7 +30,7 @@ export default async function handler(request, response) {
   if (request.method === 'POST') {
     try {
       const newState = request.body;
-      await redis.set('eva-manager-state', newState);
+      await redis.set('eva-manager-state', JSON.stringify(newState));
       return response.status(200).json({ success: true });
     } catch (error) {
       console.error("KV SET Error:", error);

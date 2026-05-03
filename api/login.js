@@ -1,9 +1,6 @@
-import { Redis } from '@upstash/redis';
+import Redis from 'ioredis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-});
+const redis = new Redis(process.env.REDIS_URL);
 
 export default async function handler(request, response) {
   response.setHeader('Access-Control-Allow-Credentials', true);
@@ -36,11 +33,12 @@ export default async function handler(request, response) {
     try {
       const exists = await redis.hexists('eva-users', 'nella');
       if (!exists) {
-        await redis.hset('eva-users', { nella: 'prime' });
+        await redis.hset('eva-users', 'nella', 'prime');
       }
     } catch (e) {
       console.error("Redis Init Error:", e);
-      return response.status(500).json({ error: 'Erreur de connexion à la base de données Redis (variables Vercel manquantes ?): ' + e.message });
+      const envKeys = Object.keys(process.env).filter(k => k.includes('REDIS') || k.includes('KV') || k.includes('UPSTASH')).join(', ');
+      return response.status(500).json({ error: `Erreur Redis: ${e.message}. Variables détectées par Vercel: [${envKeys}]` });
     }
 
     // Get the password from Redis
