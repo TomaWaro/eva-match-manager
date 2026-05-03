@@ -14,6 +14,9 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('eva-auth') === 'true';
   });
+  const [userRole, setUserRole] = useState(() => {
+    return sessionStorage.getItem('eva-role') || 'viewer';
+  });
 
   useEffect(() => {
     fetch('/api/state')
@@ -149,13 +152,16 @@ function App() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('eva-auth');
+    sessionStorage.removeItem('eva-role');
     setIsAuthenticated(false);
   };
 
   if (!isAuthenticated) {
     return (
-      <Login onLoginSuccess={() => {
+      <Login onLoginSuccess={(role) => {
         sessionStorage.setItem('eva-auth', 'true');
+        sessionStorage.setItem('eva-role', role);
+        setUserRole(role);
         setIsAuthenticated(true);
       }} />
     );
@@ -172,7 +178,7 @@ function App() {
   return (
     <div className="eva-container">
       <header className="flex md-flex-col justify-between items-center md-items-start mb-8 md-gap-2">
-        <div className="w-full">
+        <div className="flex-1">
           <h1 className="glow-text text-primary flex items-center gap-4">
             <img src="/logo.png" alt="EVA Logo" style={{ height: '60px' }} />
             EVA MAUREPAS
@@ -183,15 +189,17 @@ function App() {
         </div>
 
         <div className="flex gap-2 self-start pt-1">
-          <button onClick={exportData} className="eva-button" title="Exporter" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)' }}>
-            <Download size={16} />
+          <button onClick={exportData} className="eva-button" title="Exporter" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', fontSize: '0.75rem' }}>
+            <Download size={14} /> EXPORT
           </button>
-          <label className="eva-button" title="Importer" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', cursor: 'pointer' }}>
-            <Upload size={16} />
-            <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
-          </label>
-          <button onClick={handleLogout} className="eva-button secondary" title="Déconnexion" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(255, 0, 85, 0.05)', borderColor: 'rgba(255, 0, 85, 0.2)' }}>
-            <LogOut size={16} />
+          {userRole === 'admin' && (
+            <label className="eva-button" title="Importer" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', cursor: 'pointer', fontSize: '0.75rem' }}>
+              <Upload size={14} /> IMPORT
+              <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
+            </label>
+          )}
+          <button onClick={handleLogout} className="eva-button secondary" title="Déconnexion" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(255, 0, 85, 0.05)', borderColor: 'rgba(255, 0, 85, 0.2)', fontSize: '0.75rem' }}>
+            <LogOut size={14} /> LOGOUT
           </button>
         </div>
       </header>
@@ -227,6 +235,7 @@ function App() {
             onAdd={addPlayer} 
             onUpdate={updatePlayer}
             onDelete={deletePlayer}
+            isAdmin={userRole === 'admin'}
           />
         )}
         {activeTab === 'match' && (
@@ -236,6 +245,7 @@ function App() {
             setUpcomingMatches={setUpcomingMatches}
             finishMatch={finishMatch}
             matchHistory={matchHistory}
+            isAdmin={userRole === 'admin'}
           />
         )}
         {activeTab === 'history' && (

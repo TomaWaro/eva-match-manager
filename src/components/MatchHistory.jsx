@@ -34,23 +34,23 @@ function MatchHistory({ matchHistory }) {
 
           <div className="grid grid-cols-2 gap-4">
             {/* Team Blue */}
-            <div className="p-3 bg-black/20 rounded border border-cyan-900">
-              <h4 className="text-primary mb-2 text-center" style={{ fontFamily: 'var(--font-display)' }}>ÉQUIPE BLEUE</h4>
-              <ul className="text-sm opacity-80 text-center">
+            <div className="p-4 bg-primary/5 rounded border border-primary/20">
+              <h4 className="text-primary mb-3 text-center text-xs tracking-widest font-bold uppercase">ÉQUIPE BLEUE</h4>
+              <div className="flex flex-col gap-1 text-sm text-center">
                 {match.team1.map(p => (
-                  <li key={p.id}>{p.name}</li>
+                  <div key={p.id} className="opacity-90">{p.name}</div>
                 ))}
-              </ul>
+              </div>
             </div>
             
             {/* Team Red */}
-            <div className="p-3 bg-black/20 rounded border border-pink-900">
-              <h4 className="text-secondary mb-2 text-center" style={{ fontFamily: 'var(--font-display)' }}>ÉQUIPE ROUGE</h4>
-              <ul className="text-sm opacity-80 text-center">
+            <div className="p-4 bg-secondary/5 rounded border border-secondary/20">
+              <h4 className="text-secondary mb-3 text-center text-xs tracking-widest font-bold uppercase">ÉQUIPE ROUGE</h4>
+              <div className="flex flex-col gap-1 text-sm text-center">
                 {match.team2.map(p => (
-                  <li key={p.id}>{p.name}</li>
+                  <div key={p.id} className="opacity-90">{p.name}</div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>

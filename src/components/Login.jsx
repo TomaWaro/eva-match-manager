@@ -22,7 +22,7 @@ function Login({ onLoginSuccess }) {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        onLoginSuccess();
+        onLoginSuccess(data.role);
       } else {
         setError(data.error || 'Erreur de connexion');
       }

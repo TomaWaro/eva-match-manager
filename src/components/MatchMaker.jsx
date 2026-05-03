@@ -22,12 +22,13 @@ function getCombinations(array, k) {
 // Helper: calculate total level of a team
 const getTeamLevel = (team) => team.reduce((sum, p) => sum + p.level, 0);
 
-function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch, matchHistory }) {
+function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch, matchHistory, isAdmin }) {
   const MIN_PLAYERS = 8; // 4v4 format
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
   const handleDragStart = (e, player, teamKey, matchIndex) => {
+    if (!isAdmin) return;
     setDraggedItem({ player, teamKey, matchIndex });
     setTimeout(() => {
       if (e.target) e.target.style.opacity = '0.5';
@@ -186,9 +187,11 @@ function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch,
           <h2 className="text-2xl glow-text flex items-center gap-2">
             <Swords className="text-primary" /> PROGRAMME DE LA JOURNÉE
           </h2>
-          <button onClick={generateMatch} className="eva-button">
-            <Play size={20} /> Préparer le match {matchHistory.length + upcomingMatches.length + 1}
-          </button>
+          {isAdmin && (
+            <button onClick={generateMatch} className="eva-button">
+              <Play size={20} /> Préparer le match {matchHistory.length + upcomingMatches.length + 1}
+            </button>
+          )}
         </div>
 
         {upcomingMatches.length === 0 ? (
@@ -211,14 +214,16 @@ function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch,
                   </div>
                   
                   <div className="flex gap-3">
-                    {index === 0 ? (
-                      <button onClick={finishMatch} className="eva-button secondary">
-                        <Check size={18} /> Terminer
-                      </button>
-                    ) : (
-                      <button onClick={() => removeMatch(index)} className="eva-button" style={{ background: 'transparent', color: '#ff4444', border: '1px solid #ff4444' }}>
-                        Supprimer
-                      </button>
+                    {isAdmin && (
+                      index === 0 ? (
+                        <button onClick={finishMatch} className="eva-button secondary">
+                          <Check size={18} /> Terminer
+                        </button>
+                      ) : (
+                        <button onClick={() => removeMatch(index)} className="eva-button" style={{ background: 'transparent', color: '#ff4444', border: '1px solid #ff4444' }}>
+                          Supprimer
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -236,16 +241,16 @@ function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch,
                         {match.team1.map(player => (
                           <tr 
                             key={player.id}
-                            draggable
+                            draggable={isAdmin}
                             onDragStart={(e) => handleDragStart(e, player, 'team1', index)}
                             onDragEnd={handleDragEnd}
-                            onDragOver={(e) => handleDragOver(e, player.id)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, player, 'team1', index)}
-                            className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''}`}
+                            onDragOver={(e) => isAdmin ? handleDragOver(e, player.id) : null}
+                            onDragLeave={isAdmin ? handleDragLeave : null}
+                            onDrop={(e) => isAdmin ? handleDrop(e, player, 'team1', index) : null}
+                            className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''} ${!isAdmin ? 'cursor-default' : ''}`}
                           >
                             <td className="p-2 text-sm flex items-center gap-2">
-                              <GripVertical size={14} className="opacity-30" /> {player.name}
+                              {isAdmin && <GripVertical size={14} className="opacity-30" />} {player.name}
                             </td>
                             <td className="p-2 text-right text-xs opacity-60">Niv. {player.level}</td>
                           </tr>
@@ -266,16 +271,16 @@ function MatchMaker({ players, upcomingMatches, setUpcomingMatches, finishMatch,
                         {match.team2.map(player => (
                           <tr 
                             key={player.id}
-                            draggable
+                            draggable={isAdmin}
                             onDragStart={(e) => handleDragStart(e, player, 'team2', index)}
                             onDragEnd={handleDragEnd}
-                            onDragOver={(e) => handleDragOver(e, player.id)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, player, 'team2', index)}
-                            className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''}`}
+                            onDragOver={(e) => isAdmin ? handleDragOver(e, player.id) : null}
+                            onDragLeave={isAdmin ? handleDragLeave : null}
+                            onDrop={(e) => isAdmin ? handleDrop(e, player, 'team2', index) : null}
+                            className={`draggable-row ${dragOverId === player.id ? 'drag-over' : ''} ${!isAdmin ? 'cursor-default' : ''}`}
                           >
                             <td className="p-2 text-sm flex items-center gap-2">
-                              <GripVertical size={14} className="opacity-30" /> {player.name}
+                              {isAdmin && <GripVertical size={14} className="opacity-30" />} {player.name}
                             </td>
                             <td className="p-2 text-right text-xs opacity-60">Niv. {player.level}</td>
                           </tr>
