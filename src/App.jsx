@@ -178,20 +178,22 @@ function App() {
           </h1>
           <div className="flex md-wrap items-center gap-6 mt-2 mb-4">
             <p className="text-secondary font-bold">KHÉOPS LEAGUE</p>
-            <div className="flex md-wrap gap-2">
-              <button onClick={exportData} className="eva-button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', border: '1px solid var(--primary)' }}>
-                <Download size={14} /> Exporter
-              </button>
-              <label className="eva-button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', border: '1px solid var(--primary)', cursor: 'pointer' }}>
-                <Upload size={14} /> Importer
-                <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
-              </label>
-              <button onClick={handleLogout} className="eva-button secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
-                <LogOut size={14} /> Quitter
-              </button>
-            </div>
           </div>
         </div>
+
+        <div className="flex gap-2 self-start pt-1">
+          <button onClick={exportData} className="eva-button" title="Exporter" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)' }}>
+            <Download size={16} />
+          </button>
+          <label className="eva-button" title="Importer" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', cursor: 'pointer' }}>
+            <Upload size={16} />
+            <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
+          </label>
+          <button onClick={handleLogout} className="eva-button secondary" title="Déconnexion" style={{ padding: '0.4rem', minWidth: 'auto', background: 'rgba(255, 0, 85, 0.05)', borderColor: 'rgba(255, 0, 85, 0.2)' }}>
+            <LogOut size={16} />
+          </button>
+        </div>
+      </header>
         
         <div className="flex md-wrap gap-2 w-full">
           <button 
