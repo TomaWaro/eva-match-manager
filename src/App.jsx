@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import PlayerList from './components/PlayerList';
 import MatchMaker from './components/MatchMaker';
 import MatchHistory from './components/MatchHistory';
-import { Gamepad2, Users, History, Download, Upload } from 'lucide-react';
+import Login from './components/Login';
+import { Gamepad2, Users, History, Download, Upload, LogOut } from 'lucide-react';
 
 function App() {
   const [players, setPlayers] = useState([]);
@@ -10,6 +11,9 @@ function App() {
   const [matchHistory, setMatchHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('match');
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('eva-auth') === 'true';
+  });
 
   useEffect(() => {
     fetch('/api/state')
@@ -140,6 +144,20 @@ function App() {
     event.target.value = null; // reset file input
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('eva-auth');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <Login onLoginSuccess={() => {
+        sessionStorage.setItem('eva-auth', 'true');
+        setIsAuthenticated(true);
+      }} />
+    );
+  }
+
   if (loading) {
     return (
       <div className="eva-container flex items-center justify-center" style={{ minHeight: '100vh' }}>
@@ -166,6 +184,9 @@ function App() {
                 <Upload size={14} /> Importer
                 <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
               </label>
+              <button onClick={handleLogout} className="eva-button secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                <LogOut size={14} /> Quitter
+              </button>
             </div>
           </div>
         </div>
