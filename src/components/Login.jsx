@@ -37,11 +37,11 @@ function Login({ onLoginSuccess }) {
     <div className="eva-container flex flex-col items-center justify-center" style={{ minHeight: '100vh', padding: '1rem' }}>
       <div className="eva-card w-full" style={{ maxWidth: '400px', margin: 'auto', marginTop: '10vh' }}>
         <div className="text-center mb-8">
-          <Gamepad2 size={48} className="mx-auto text-primary mb-4" />
+          <img src="/logo.png" alt="EVA Logo" className="mx-auto mb-4" style={{ height: '100px' }} />
           <h1 className="glow-text text-primary text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-            ACCÈS RESTREINT
+            EVA MAUREPAS
           </h1>
-          <p className="text-secondary opacity-80 mt-2">Identification Requise</p>
+          <p className="text-secondary opacity-80 mt-2 font-bold">KHÉOPS LEAGUE</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

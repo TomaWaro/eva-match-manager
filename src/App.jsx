@@ -171,11 +171,11 @@ function App() {
       <header className="flex md-flex-col justify-between items-center md-items-start mb-8 md-gap-2">
         <div className="w-full">
           <h1 className="glow-text text-primary flex items-center gap-4">
-            <Gamepad2 size={32} />
-            EVA Match Manager
+            <img src="/logo.png" alt="EVA Logo" style={{ height: '60px' }} />
+            EVA MAUREPAS
           </h1>
           <div className="flex md-wrap items-center gap-6 mt-2 mb-4">
-            <p className="text-secondary font-bold">4V4 EDITION</p>
+            <p className="text-secondary font-bold">KHÉOPS LEAGUE</p>
             <div className="flex md-wrap gap-2">
               <button onClick={exportData} className="eva-button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', border: '1px solid var(--primary)' }}>
                 <Download size={14} /> Exporter

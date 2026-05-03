@@ -86,20 +86,8 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch, match
     const playerStats = players.map(player => {
       let consecutive = 0;
       let sinceLast = 0;
-      let hasPlayedOnce = false;
-
-      // Check history (from most recent)
-      for (let i = 0; i < matchHistory.length; i++) {
-        const match = matchHistory[i];
-        const playedInMatch = [...match.team1, ...match.team2].some(p => p.id === player.id);
-        
-        if (playedInMatch) {
-          hasPlayedOnce = true;
-          if (sinceLast === 0 && !hasPlayedOnce) {
-            // this loop logic is slightly complex, let's simplify
-          }
-        }
-      }
+      // Calculate priority score
+      let priorityScore = player.matchesPlayed;
 
       // Simplified logic:
       // consecutive: how many of the last N matches did they play without a break?
@@ -118,18 +106,16 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch, match
         else break;
       }
 
-      // Calculate priority score
-      // Lower is better (more priority)
-      let priorityScore = player.matchesPlayed;
+      // RULE 1 (Priority): "Anti-banc" -> Priority to those who waited
+      if (sinceLast >= 3) priorityScore -= 500; // Absolute priority
+      else if (sinceLast === 2) priorityScore -= 50; // High priority
       
-      // RULE: "Ne pas jouer pendant 3 matchs" -> If you stayed out for 3 matches, you MUST play.
-      if (sinceLast >= 3) priorityScore -= 100;
-      
-      // RULE: "Ne pas enchaîner 3 matchs" -> If you played 3 in a row, you MUST sit out.
-      if (consecutive >= 3) priorityScore += 100;
+      // RULE 2: "Anti-enchaînement" -> Penalty to those who play too much
+      if (consecutive >= 3) priorityScore += 500; // Forced rest
+      else if (consecutive === 2) priorityScore += 50; // Soft rest recommendation
 
-      // Small penalty if played the very last match to break ties
-      if (consecutive > 0) priorityScore += 0.1;
+      // Small penalty if played the very last match to break ties in favor of bench
+      if (consecutive > 0) priorityScore += 5;
 
       return { ...player, priorityScore, rotationStats: { consecutive, sinceLast } };
     });
