@@ -231,6 +231,7 @@ function App() {
             currentMatch={currentMatch}
             setCurrentMatch={setCurrentMatch}
             finishMatch={finishMatch}
+            matchHistory={matchHistory}
           />
         )}
         {activeTab === 'history' && (

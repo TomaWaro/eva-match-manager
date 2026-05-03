@@ -22,7 +22,7 @@ function getCombinations(array, k) {
 // Helper: calculate total level of a team
 const getTeamLevel = (team) => team.reduce((sum, p) => sum + p.level, 0);
 
-function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
+function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch, matchHistory }) {
   const MIN_PLAYERS = 8; // 4v4 format
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -82,12 +82,62 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
   };
 
   const generateMatch = () => {
-    // 1. Sort players by matches played (ascending). For ties, shuffle them randomly to ensure rotation.
-    const shuffledPlayers = [...players].sort(() => 0.5 - Math.random());
-    const sortedPlayers = shuffledPlayers.sort((a, b) => a.matchesPlayed - b.matchesPlayed);
-    
-    // 2. Select the top 8 players who have played the least
-    const selectedPlayers = sortedPlayers.slice(0, 8);
+    // 1. Calculate rotation stats for each player
+    const playerStats = players.map(player => {
+      let consecutive = 0;
+      let sinceLast = 0;
+      let hasPlayedOnce = false;
+
+      // Check history (from most recent)
+      for (let i = 0; i < matchHistory.length; i++) {
+        const match = matchHistory[i];
+        const playedInMatch = [...match.team1, ...match.team2].some(p => p.id === player.id);
+        
+        if (playedInMatch) {
+          hasPlayedOnce = true;
+          if (sinceLast === 0 && !hasPlayedOnce) {
+            // this loop logic is slightly complex, let's simplify
+          }
+        }
+      }
+
+      // Simplified logic:
+      // consecutive: how many of the last N matches did they play without a break?
+      for (let i = 0; i < matchHistory.length; i++) {
+        const match = matchHistory[i];
+        const played = [...match.team1, ...match.team2].some(p => p.id === player.id);
+        if (played) consecutive++;
+        else break;
+      }
+
+      // sinceLast: how many of the last N matches did they miss?
+      for (let i = 0; i < matchHistory.length; i++) {
+        const match = matchHistory[i];
+        const played = [...match.team1, ...match.team2].some(p => p.id === player.id);
+        if (!played) sinceLast++;
+        else break;
+      }
+
+      // Calculate priority score
+      // Lower is better (more priority)
+      let priorityScore = player.matchesPlayed;
+      
+      // RULE: "Ne pas jouer pendant 3 matchs" -> If you stayed out for 3 matches, you MUST play.
+      if (sinceLast >= 3) priorityScore -= 100;
+      
+      // RULE: "Ne pas enchaîner 3 matchs" -> If you played 3 in a row, you MUST sit out.
+      if (consecutive >= 3) priorityScore += 100;
+
+      // Small penalty if played the very last match to break ties
+      if (consecutive > 0) priorityScore += 0.1;
+
+      return { ...player, priorityScore, rotationStats: { consecutive, sinceLast } };
+    });
+
+    // 2. Sort by priority score and pick 8
+    const shuffled = [...playerStats].sort(() => 0.5 - Math.random());
+    const sorted = shuffled.sort((a, b) => a.priorityScore - b.priorityScore);
+    const selectedPlayers = sorted.slice(0, 8);
 
     // 3. Find the best combination to balance levels
     const team1Combinations = getCombinations(selectedPlayers, 4);
@@ -96,12 +146,9 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
     let minDifference = Infinity;
 
     team1Combinations.forEach(t1 => {
-      // Team 2 is the remaining players
       const t1Ids = t1.map(p => p.id);
       const t2 = selectedPlayers.filter(p => !t1Ids.includes(p.id));
-
       const diff = Math.abs(getTeamLevel(t1) - getTeamLevel(t2));
-      
       if (diff < minDifference) {
         minDifference = diff;
         bestTeam1 = t1;
