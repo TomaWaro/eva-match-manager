@@ -105,16 +105,18 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
               <div className="mb-4 text-center opacity-70">
                 Niveau Global : <span className="font-bold text-white">{getTeamLevel(currentMatch.team1)}</span>
               </div>
-              <table style={{ background: 'rgba(0, 240, 255, 0.05)' }}>
-                <tbody>
-                  {currentMatch.team1.map(player => (
-                    <tr key={player.id}>
-                      <td className="font-bold">{player.name}</td>
-                      <td className="text-right">Niv. {player.level}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-responsive">
+                <table style={{ background: 'rgba(0, 240, 255, 0.05)' }}>
+                  <tbody>
+                    {currentMatch.team1.map(player => (
+                      <tr key={player.id}>
+                        <td className="font-bold">{player.name}</td>
+                        <td className="text-right">Niv. {player.level}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Team 2 - RED */}
@@ -123,16 +125,18 @@ function MatchMaker({ players, currentMatch, setCurrentMatch, finishMatch }) {
               <div className="mb-4 text-center opacity-70">
                 Niveau Global : <span className="font-bold text-white">{getTeamLevel(currentMatch.team2)}</span>
               </div>
-              <table style={{ background: 'rgba(255, 0, 85, 0.05)' }}>
-                <tbody>
-                  {currentMatch.team2.map(player => (
-                    <tr key={player.id}>
-                      <td className="font-bold">{player.name}</td>
-                      <td className="text-right">Niv. {player.level}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-responsive">
+                <table style={{ background: 'rgba(255, 0, 85, 0.05)' }}>
+                  <tbody>
+                    {currentMatch.team2.map(player => (
+                      <tr key={player.id}>
+                        <td className="font-bold">{player.name}</td>
+                        <td className="text-right">Niv. {player.level}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           

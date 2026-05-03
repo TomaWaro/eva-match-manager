@@ -37,11 +37,11 @@ function PlayerList({ players, onAdd, onUpdate, onDelete }) {
           <UserPlus className="text-primary" />
           Ajouter un joueur
         </h2>
-        <form onSubmit={handleAdd} className="flex gap-4 items-center">
+        <form onSubmit={handleAdd} className="flex md-flex-col gap-4 items-center md-items-start">
           <input 
             type="text" 
             placeholder="Nom du joueur" 
-            className="eva-input"
+            className="eva-input w-full"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             required
@@ -51,13 +51,13 @@ function PlayerList({ players, onAdd, onUpdate, onDelete }) {
             <input 
               type="number" 
               min="1" max="10" 
-              className="eva-input"
+              className="eva-input flex-1"
               value={newLevel}
               onChange={(e) => setNewLevel(e.target.value)}
               required
             />
           </div>
-          <button type="submit" className="eva-button">
+          <button type="submit" className="eva-button w-full">
             Ajouter
           </button>
         </form>
@@ -68,68 +68,70 @@ function PlayerList({ players, onAdd, onUpdate, onDelete }) {
         {players.length === 0 ? (
           <p className="text-center opacity-50 py-4">Aucun joueur dans le roster. Ajoutez-en pour commencer.</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Niveau</th>
-                <th>Matchs Joués</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map(player => (
-                <tr key={player.id}>
-                  <td className="font-bold">
-                    {editingId === player.id ? (
-                      <input 
-                        type="text"
-                        className="eva-input" style={{ width: '120px', padding: '0.25rem', fontWeight: 'normal' }}
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                      />
-                    ) : (
-                      player.name
-                    )}
-                  </td>
-                  <td>
-                    {editingId === player.id ? (
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="number" min="1" max="10" 
-                          className="eva-input" style={{ width: '80px', padding: '0.25rem' }}
-                          value={editLevel}
-                          onChange={(e) => setEditLevel(e.target.value)}
-                        />
-                        <button onClick={() => saveEdit(player.id)} className="text-primary hover:text-white">
-                          <Check size={18} />
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-primary">{player.level} / 10</span>
-                    )}
-                  </td>
-                  <td>{player.matchesPlayed}</td>
-                  <td className="text-right flex gap-4 justify-end">
-                    <button 
-                      onClick={() => editingId === player.id ? saveEdit(player.id) : startEdit(player)} 
-                      className="text-secondary hover:text-white transition-colors"
-                      title="Modifier joueur"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button 
-                      onClick={() => onDelete(player.id)} 
-                      className="text-secondary hover:text-white transition-colors"
-                      title="Supprimer joueur"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Niveau</th>
+                  <th>Matchs Joués</th>
+                  <th className="text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {players.map(player => (
+                  <tr key={player.id}>
+                    <td className="font-bold">
+                      {editingId === player.id ? (
+                        <input 
+                          type="text"
+                          className="eva-input" style={{ width: '120px', padding: '0.25rem', fontWeight: 'normal' }}
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                        />
+                      ) : (
+                        player.name
+                      )}
+                    </td>
+                    <td>
+                      {editingId === player.id ? (
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="number" min="1" max="10" 
+                            className="eva-input" style={{ width: '60px', padding: '0.25rem' }}
+                            value={editLevel}
+                            onChange={(e) => setEditLevel(e.target.value)}
+                          />
+                          <button onClick={() => saveEdit(player.id)} className="text-primary hover:text-white">
+                            <Check size={18} />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-primary">{player.level} / 10</span>
+                      )}
+                    </td>
+                    <td>{player.matchesPlayed}</td>
+                    <td className="text-right flex gap-2 justify-end">
+                      <button 
+                        onClick={() => editingId === player.id ? saveEdit(player.id) : startEdit(player)} 
+                        className="text-secondary hover:text-white transition-colors"
+                        title="Modifier joueur"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => onDelete(player.id)} 
+                        className="text-secondary hover:text-white transition-colors"
+                        title="Supprimer joueur"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
