@@ -46,6 +46,7 @@ function App() {
         console.warn("API Error, falling back to localStorage", err);
         const savedPlayers = localStorage.getItem('eva-players');
         const savedMatches = localStorage.getItem('eva-upcoming');
+        const savedHistory = localStorage.getItem('eva-history');
         if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
         if (savedMatches) setUpcomingMatches(JSON.parse(savedMatches));
         if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
@@ -195,30 +196,29 @@ function App() {
         </div>
       </header>
         
-        <div className="flex md-wrap gap-2 w-full">
-          <button 
-            className={`eva-button ${activeTab === 'players' ? 'secondary' : ''}`}
-            onClick={() => setActiveTab('players')}
-          >
-            <Users size={20} />
-            Roster ({players.length})
-          </button>
-          <button 
-            className={`eva-button ${activeTab === 'match' ? 'secondary' : ''}`}
-            onClick={() => setActiveTab('match')}
-          >
-            <Gamepad2 size={20} />
-            Match Area
-          </button>
-          <button 
-            className={`eva-button ${activeTab === 'history' ? 'secondary' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            <History size={20} />
-            Historique
-          </button>
-        </div>
-      </header>
+      <nav className="flex md-wrap gap-2 w-full mb-8">
+        <button 
+          className={`eva-button ${activeTab === 'players' ? 'secondary' : ''}`}
+          onClick={() => setActiveTab('players')}
+        >
+          <Users size={20} />
+          Roster ({players.length})
+        </button>
+        <button 
+          className={`eva-button ${activeTab === 'match' ? 'secondary' : ''}`}
+          onClick={() => setActiveTab('match')}
+        >
+          <Gamepad2 size={20} />
+          Match Area
+        </button>
+        <button 
+          className={`eva-button ${activeTab === 'history' ? 'secondary' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          <History size={20} />
+          Historique
+        </button>
+      </nav>
 
       <main>
         {activeTab === 'players' && (
