@@ -5,34 +5,66 @@ import MatchHistory from './components/MatchHistory';
 import { Gamepad2, Users, History, Download, Upload } from 'lucide-react';
 
 function App() {
-  const [players, setPlayers] = useState(() => {
-    const saved = localStorage.getItem('eva-players');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [currentMatch, setCurrentMatch] = useState(() => {
-    const saved = localStorage.getItem('eva-match');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [matchHistory, setMatchHistory] = useState(() => {
-    const saved = localStorage.getItem('eva-history');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeTab, setActiveTab] = useState('match'); // 'match', 'players', or 'history'
+  const [players, setPlayers] = useState([]);
+  const [currentMatch, setCurrentMatch] = useState(null);
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('match');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetch('/api/state')
+      .then(res => {
+        if (!res.ok) throw new Error("API not available");
+        return res.json();
+      })
+      .then(data => {
+        if (data.players) setPlayers(data.players);
+        else {
+          const savedPlayers = localStorage.getItem('eva-players');
+          if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
+        }
+        
+        if (data.currentMatch !== undefined) setCurrentMatch(data.currentMatch);
+        else {
+          const savedMatch = localStorage.getItem('eva-match');
+          if (savedMatch) setCurrentMatch(JSON.parse(savedMatch));
+        }
+        
+        if (data.matchHistory) setMatchHistory(data.matchHistory);
+        else {
+          const savedHistory = localStorage.getItem('eva-history');
+          if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn("API Error, falling back to localStorage", err);
+        const savedPlayers = localStorage.getItem('eva-players');
+        const savedMatch = localStorage.getItem('eva-match');
+        const savedHistory = localStorage.getItem('eva-history');
+        if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
+        if (savedMatch) setCurrentMatch(JSON.parse(savedMatch));
+        if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    
+    // Save locally always
     localStorage.setItem('eva-players', JSON.stringify(players));
-  }, [players]);
-
-  useEffect(() => {
     localStorage.setItem('eva-match', JSON.stringify(currentMatch));
-  }, [currentMatch]);
-
-  useEffect(() => {
     localStorage.setItem('eva-history', JSON.stringify(matchHistory));
-  }, [matchHistory]);
+
+    // Try saving to DB
+    const data = { players, currentMatch, matchHistory };
+    fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(() => {}); // ignore error locally
+  }, [players, currentMatch, matchHistory, loading]);
 
   const addPlayer = (name, level) => {
     const newPlayer = {
@@ -107,6 +139,14 @@ function App() {
     reader.readAsText(file);
     event.target.value = null; // reset file input
   };
+
+  if (loading) {
+    return (
+      <div className="eva-container flex items-center justify-center" style={{ minHeight: '100vh' }}>
+        <h2 className="glow-text text-primary text-2xl">Connexion au serveur...</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="eva-container">
