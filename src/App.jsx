@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PlayerList from './components/PlayerList';
 import MatchMaker from './components/MatchMaker';
 import MatchHistory from './components/MatchHistory';
-import { Gamepad2, Users, History } from 'lucide-react';
+import { Gamepad2, Users, History, Download, Upload } from 'lucide-react';
 
 function App() {
   const [players, setPlayers] = useState(() => {
@@ -78,6 +78,36 @@ function App() {
     setCurrentMatch(null);
   };
 
+  const exportData = () => {
+    const data = { players, currentMatch, matchHistory };
+    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `eva-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.players) setPlayers(data.players);
+        if (data.currentMatch !== undefined) setCurrentMatch(data.currentMatch);
+        if (data.matchHistory) setMatchHistory(data.matchHistory);
+        alert("Données importées avec succès !");
+      } catch (err) {
+        alert("Erreur lors de l'importation du fichier JSON.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = null; // reset file input
+  };
+
   return (
     <div className="eva-container">
       <header className="flex justify-between items-center mb-8">
@@ -86,7 +116,18 @@ function App() {
             <Gamepad2 size={40} />
             EVA Match Manager
           </h1>
-          <p className="text-secondary mt-2 font-bold">4V4 EDITION</p>
+          <div className="flex items-center gap-6 mt-2">
+            <p className="text-secondary font-bold">4V4 EDITION</p>
+            <div className="flex gap-2">
+              <button onClick={exportData} className="eva-button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', border: '1px solid var(--primary)' }}>
+                <Download size={14} /> Exporter
+              </button>
+              <label className="eva-button" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', border: '1px solid var(--primary)', cursor: 'pointer' }}>
+                <Upload size={14} /> Importer
+                <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
+              </label>
+            </div>
+          </div>
         </div>
         
         <div className="flex gap-4">
