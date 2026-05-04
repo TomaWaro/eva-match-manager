@@ -232,3 +232,34 @@ tr:hover td {
   background-color: rgba(255, 255, 255, 0.2) !important;
   outline: 2px dashed var(--primary);
 }
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+  border-color: var(--primary);
+}
+
+.md-grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (max-width: 768px) {
+  .md-grid-cols-1 {
+    grid-template-columns: 1fr;
+  }
+}

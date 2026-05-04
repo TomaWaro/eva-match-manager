@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PlayerList from './components/PlayerList';
 import MatchMaker from './components/MatchMaker';
 import MatchHistory from './components/MatchHistory';
+import Archives from './components/Archives';
 import Login from './components/Login';
 import { Gamepad2, Users, History, Download, Upload, LogOut } from 'lucide-react';
 
@@ -9,8 +10,13 @@ function App() {
   const [players, setPlayers] = useState([]);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [matchHistory, setMatchHistory] = useState([]);
+  const [archives, setArchives] = useState([]);
   const [activeTab, setActiveTab] = useState('match');
   const [loading, setLoading] = useState(true);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [archiveName, setArchiveName] = useState('');
+  const [shouldArchive, setShouldArchive] = useState(true);
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('eva-auth') === 'true';
   });
@@ -43,6 +49,13 @@ function App() {
           const savedHistory = localStorage.getItem('eva-history');
           if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
         }
+
+        if (data.archives) setArchives(data.archives);
+        else {
+          const savedArchives = localStorage.getItem('eva-archives');
+          if (savedArchives) setArchives(JSON.parse(savedArchives));
+        }
+
         setLoading(false);
       })
       .catch(err => {
@@ -50,9 +63,11 @@ function App() {
         const savedPlayers = localStorage.getItem('eva-players');
         const savedMatches = localStorage.getItem('eva-upcoming');
         const savedHistory = localStorage.getItem('eva-history');
+        const savedArchives = localStorage.getItem('eva-archives');
         if (savedPlayers) setPlayers(JSON.parse(savedPlayers));
         if (savedMatches) setUpcomingMatches(JSON.parse(savedMatches));
         if (savedHistory) setMatchHistory(JSON.parse(savedHistory));
+        if (savedArchives) setArchives(JSON.parse(savedArchives));
         setLoading(false);
       });
   }, []);
@@ -64,15 +79,16 @@ function App() {
     localStorage.setItem('eva-players', JSON.stringify(players));
     localStorage.setItem('eva-upcoming', JSON.stringify(upcomingMatches));
     localStorage.setItem('eva-history', JSON.stringify(matchHistory));
+    localStorage.setItem('eva-archives', JSON.stringify(archives));
 
     // Try saving to DB
-    const data = { players, upcomingMatches, matchHistory };
+    const data = { players, upcomingMatches, matchHistory, archives };
     fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     }).catch(() => {}); // ignore error locally
-  }, [players, upcomingMatches, matchHistory, loading]);
+  }, [players, upcomingMatches, matchHistory, archives, loading]);
 
   const addPlayer = (name, level) => {
     const newPlayer = {
@@ -120,7 +136,7 @@ function App() {
   };
 
   const exportData = () => {
-    const data = { players, upcomingMatches, matchHistory };
+    const data = { players, upcomingMatches, matchHistory, archives };
     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -141,6 +157,7 @@ function App() {
         if (data.upcomingMatches) setUpcomingMatches(data.upcomingMatches);
         else if (data.currentMatch) setUpcomingMatches([data.currentMatch]);
         if (data.matchHistory) setMatchHistory(data.matchHistory);
+        if (data.archives) setArchives(data.archives);
         alert("Données importées avec succès !");
       } catch (err) {
         alert("Erreur lors de l'importation du fichier JSON.");
@@ -154,6 +171,32 @@ function App() {
     sessionStorage.removeItem('eva-auth');
     sessionStorage.removeItem('eva-role');
     setIsAuthenticated(false);
+  };
+
+  const handleReset = () => {
+    if (shouldArchive) {
+      if (!archiveName.trim()) {
+        alert("Veuillez donner un nom à l'archive");
+        return;
+      }
+      const newArchive = {
+        id: Date.now().toString(),
+        name: archiveName,
+        date: new Date().toISOString(),
+        players: [...players],
+        matchHistory: [...matchHistory],
+        upcomingMatches: [...upcomingMatches]
+      };
+      setArchives([newArchive, ...archives]);
+    }
+
+    setPlayers([]);
+    setUpcomingMatches([]);
+    setMatchHistory([]);
+    setShowResetModal(false);
+    setArchiveName('');
+    setActiveTab('players');
+    alert("Application réinitialisée !");
   };
 
   if (!isAuthenticated) {
@@ -193,10 +236,20 @@ function App() {
             <Download size={14} /> EXPORT
           </button>
           {userRole === 'admin' && (
-            <label className="eva-button" title="Importer" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', cursor: 'pointer', fontSize: '0.75rem' }}>
-              <Upload size={14} /> IMPORT
-              <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
-            </label>
+            <>
+              <label className="eva-button" title="Importer" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(0, 240, 255, 0.05)', borderColor: 'rgba(0, 240, 255, 0.2)', cursor: 'pointer', fontSize: '0.75rem' }}>
+                <Upload size={14} /> IMPORT
+                <input type="file" accept=".json" style={{ display: 'none' }} onChange={importData} />
+              </label>
+              <button 
+                onClick={() => setShowResetModal(true)} 
+                className="eva-button secondary" 
+                title="Reset" 
+                style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(255, 0, 85, 0.05)', borderColor: 'rgba(255, 0, 85, 0.2)', fontSize: '0.75rem' }}
+              >
+                RESET
+              </button>
+            </>
           )}
           <button onClick={handleLogout} className="eva-button secondary" title="Déconnexion" style={{ padding: '0.4rem 0.6rem', minWidth: 'auto', background: 'rgba(255, 0, 85, 0.05)', borderColor: 'rgba(255, 0, 85, 0.2)', fontSize: '0.75rem' }}>
             <LogOut size={14} /> LOGOUT
@@ -226,6 +279,13 @@ function App() {
           <History size={20} />
           Historique
         </button>
+        <button 
+          className={`eva-button ${activeTab === 'archives' ? 'secondary' : ''}`}
+          onClick={() => setActiveTab('archives')}
+        >
+          <History size={20} />
+          Archives ({archives.length})
+        </button>
       </nav>
 
       <main>
@@ -251,7 +311,52 @@ function App() {
         {activeTab === 'history' && (
           <MatchHistory matchHistory={matchHistory} />
         )}
+        {activeTab === 'archives' && (
+          <Archives archives={archives} setArchives={setArchives} isAdmin={userRole === 'admin'} />
+        )}
       </main>
+
+      {/* Reset Modal */}
+      {showResetModal && (
+        <div className="modal-overlay">
+          <div className="eva-card" style={{ maxWidth: '400px', width: '90%' }}>
+            <h2 className="text-secondary mb-4">Reset Application</h2>
+            <p className="mb-6 opacity-80">Êtes-vous sûr de vouloir tout réinitialiser ? Cette action est irréversible (sauf si vous archivez).</p>
+            
+            <div className="flex flex-col gap-4 mb-8">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={shouldArchive} 
+                  onChange={(e) => setShouldArchive(e.target.checked)}
+                  style={{ width: '20px', height: '20px' }}
+                />
+                <span>Sauvegarder dans les archives</span>
+              </label>
+              
+              {shouldArchive && (
+                <input 
+                  type="text" 
+                  className="eva-input" 
+                  placeholder="Nom de l'archive (ex: Tournoi Mai)"
+                  value={archiveName}
+                  onChange={(e) => setArchiveName(e.target.value)}
+                  autoFocus
+                />
+              )}
+            </div>
+            
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowResetModal(false)} className="eva-button" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                Annuler
+              </button>
+              <button onClick={handleReset} className="eva-button secondary">
+                Confirmer Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
